@@ -3,130 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pax Historia 3 Kişilik Simülatör</title>
+    <title>New Historia - Global AI Sandbox</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #121212; color: #e0e0e0; display: flex; height: 100vh; margin: 0; }
-        #left-panel { width: 350px; background-color: #1e1e1e; padding: 15px; display: flex; flex-direction: column; border-right: 2px solid #2d2d2d; }
-        h3 { margin-top: 0; color: #007acc; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .selector-box { margin-bottom: 15px; }
-        select, textarea { width: 100%; background: #252526; color: #fff; border: 1px solid #3c3c3c; padding: 8px; border-radius: 4px; }
-        textarea { height: 80px; resize: none; margin-top: 5px; }
-        button { width: 100%; background-color: #0e639c; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 8px; }
-        button:hover { background-color: #1177bb; }
-        #center-panel { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; background-color: #141414; }
-        #event-log { flex-grow: 1; overflow-y: auto; background: #1a1a1a; border: 1px solid #2d2d2d; padding: 15px; border-radius: 6px; }
-        .log-entry { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #252526; line-height: 1.4; }
-        .log-title { font-weight: bold; color: #ff9900; }
-        .system-msg { color: #00cc66; font-style: italic; margin-bottom: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f0f11; color: #e2e8f0; display: flex; height: 100vh; margin: 0; overflow: hidden; }
+        
+        /* Sol Panel - Kontrol, Diplomasi ve Danışmanlar */
+        #control-panel { width: 380px; background-color: #18181b; padding: 15px; display: flex; flex-direction: column; border-right: 2px solid #27272a; overflow-y: auto; }
+        h2, h3 { margin-top: 0; color: #3b82f6; border-bottom: 1px solid #27272a; padding-bottom: 5px; font-weight: 600; }
+        h3 { color: #f59e0b; margin-top: 15px; }
+        .box { margin-bottom: 15px; background: #202024; padding: 10px; border-radius: 6px; border: 1px solid #27272a; }
+        label { display: block; margin-bottom: 5px; font-size: 13px; color: #9ca3af; font-weight: bold; }
+        select, textarea { width: 100%; background: #0f0f11; color: #fff; border: 1px solid #3f3f46; padding: 8px; border-radius: 4px; font-size: 14px; }
+        textarea { height: 70px; resize: none; }
+        
+        /* Butonlar */
+        button { width: 100%; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn-blue { background-color: #2563eb; }
+        .btn-blue:hover { background-color: #1d4ed8; }
+        .btn-green { background-color: #10b981; margin-top: 10px; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
+        .btn-green:hover { background-color: #059669; }
+
+        /* Sağ Panel - Dünya Sahnesi, Zaman ve Olaylar */
+        #display-panel { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; background-color: #09090b; }
+        #timeline-header { display: flex; justify-content: space-between; align-items: center; background: #18181b; padding: 15px; border-radius: 6px; border: 1px solid #27272a; margin-bottom: 15px; }
+        #current-year { font-size: 24px; font-weight: bold; color: #3b82f6; letter-spacing: 1px; }
+        
+        /* Olay Raporları */
+        #event-log { flex-grow: 1; overflow-y: auto; background: #141416; border: 1px solid #27272a; padding: 15px; border-radius: 6px; display: flex; flex-direction: column; gap: 12px; }
+        .event-card { background: #1c1c21; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 4px; animation: fadeIn 0.3s ease-in-out; }
+        .event-card.ai-turn { border-left-color: #ef4444; }
+        .event-card.meeting { border-left-color: #a855f7; }
+        .event-meta { font-size: 12px; color: #71717a; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .event-title { font-weight: bold; color: #f97316; font-size: 15px; margin-bottom: 5px; }
+        
+        /* Danışman Kartları */
+        .advisor-box { font-size: 13px; line-height: 1.4; padding: 8px; border-radius: 4px; margin-top: 8px; background: #1c1c21; border-left: 3px solid #3b82f6; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <!-- Sol Panel: Ülke Seçimi ve Eylemler -->
-    <div id="left-panel">
-        <h3>1. Ülkeni Seç</h3>
-        <div class="selector-box">
-            <select id="myCountry" onchange="ulkeDegistir()">
-                <option value="Seçilmedi">--- Ülke Seçiniz ---</option>
-                <option value="Türkiye">Türkiye 🇹🇷</option>
-                <option value="Azerbaycan">Azerbaycan 🇦🇿</option>
-                <option value="Galiçya / Rusya">Rusya 🇷🇺</option>
-            </select>
-        </div>
-
-        <h3>2. Eylem Yap</h3>
-        <div class="selector-box">
-            <label>Hedef Bölge:</label>
-            <select id="targetCountry">
-                <option value="İran (Güney Azerbaycan)">İran (Güney Azerbaycan)</option>
-                <option value="Suriye (Kuzey Türkmenleri)">Suriye (Kuzey Türkmenleri)</option>
-                <option value="Ermenistan Sınırı">Ermenistan Sınırı</option>
-                <option value="Kıbrıs Rum Kesimi">Kıbrıs Rum Kesimi</option>
-            </select>
-        </div>
-
-        <div class="selector-box">
-            <label>Eylem Türü:</label>
-            <select id="actionType">
-                <option value="Gizli Propaganda">Gizli Propaganda Başlat</option>
-                <option value="Milis Güçleri Silahlandırma">Milisleri Silahlandır</option>
-                <option value="Askeri Yığınak">Sınıra Askeri Yığınak Yap</option>
-                <option value="Diplomatik Blöf">Diplomatik Baskı Kur</option>
-            </select>
-        </div>
-
-        <label>Özel Emir / Chat Mesajı:</label>
-        <textarea id="customCommand" placeholder="Örn: Trump ile gizli anlaşma yap..."></textarea>
+    <!-- Sol Kontrol Paneli -->
+    <div id="control-panel">
+        <h2>Lider Paneli (Türkiye 🇹🇷)</h2>
         
-        <button onclick="turAtlaMultiplayer()">HAMLEYİ ODADAKİLERE GÖNDER</button>
+        <div class="box">
+            <label>1. Küresel Toplantı Kur / Diplomasi:</label>
+            <select id="meetingTarget">
+                <option value="Amerika Birleşik Devletleri">Amerika Birleşik Devletleri (Washington)</option>
+                <option value="Rusya Federasyonu">Rusya Federasyonu (Moskova)</option>
+                <option value="Çin Halk Cumhuriyeti">Çin Halk Cumhuriyeti (Pekin)</option>
+                <option value="Avrupa Birliği">Avrupa Birliği (Brüksel)</option>
+                <option value="Türk Devletleri Teşkilatı">Türk Devletleri Teşkilatı (Bakü-Taşkent)</option>
+            </select>
+            <label style="margin-top:8px;">Toplantı Gündemi / Teklifiniz:</label>
+            <textarea id="meetingAgenda" placeholder="Örn: Serbest ticaret anlaşması imzalayalım, üs kuralım..."></textarea>
+            <button class="button btn-blue" onclick="toplantiYap()">Toplantıyı Gerçekleştir</button>
+        </div>
+
+        <div class="box">
+            <label>2. Gizli & Askeri Eylemler:</label>
+            <select id="actionTarget">
+                <option value="Orta Doğu">Orta Doğu Bölgesi</option>
+                <option value="Kafkaslar">Kafkasya Sınırı</option>
+                <option value="Doğu Akdeniz">Doğu Akdeniz & Kıbrıs</option>
+                <option value="Balkanlar">Balkan Coğrafyası</option>
+            </select>
+            <label style="margin-top:8px;">Eylem Türü:</label>
+            <select id="actionType">
+                <option value="Milis Güçleri Destekleme">Milis Güçleri Silahlandır ve Eğit</option>
+                <option value="İstihbarat Operasyonu">Gizli Propaganda ve İstihbarat Sızdırma</option>
+                <option value="Askeri Yığınak">Sınıra Büyük Ordu ve Hava Savunma Yığınağı</option>
+            </select>
+        </div>
+
+        <h3>🧠 Stratejik AI Danışmanları</h3>
+        <div id="advisors">
+            <div class="advisor-box" style="border-left-color: #ef4444;">
+                <b>Askeri Danışman:</b> "Sınırlara yığınak yapmak caydırıcılığı artırır ancak küresel güçleri alarma geçirir."
+            </div>
+            <div class="advisor-box" style="border-left-color: #10b981;">
+                <b>Diplomatik Danışman:</b> "Büyük devletlerle yapacağınız zirveler, gizli operasyonlarınızın üstünü örtmek için iyi bir fırsattır."
+            </div>
+        </div>
+
+        <!-- Yılı İlerletme Butonu -->
+        <button class="button btn-green" onclick="yilAtla()">⏩ 1 YIL İLERLE (Zamanı Akıt)</button>
     </div>
 
-    <!-- Orta Panel: Ortak Ekran -->
-    <div id="center-panel">
-        <h3>Küresel Ortak Rapor Ekranı (Multiplayer)</h3>
+    <!-- Sağ Gösterge Paneli -->
+    <div id="display-panel">
+        <div id="timeline-header">
+            <div>
+                <span style="color:#71717a; font-weight:bold;">SİMÜLASYON DÖNEMİ</span>
+                <div id="current-year">YIL: 2026</div>
+            </div>
+            <div style="color: #a1a1aa; font-size: 14px; text-align: right;">
+                <b>Mod:</b> Tek Oyunculu Sandbox<br>
+                <b>Dünya Durumu:</b> Dinamik AI Simülasyonu
+            </div>
+        </div>
+
         <div id="event-log">
-            <div class="log-entry">
-                <div class="log-title">🌍 Lobide Bağlantı Bekleniyor</div>
-                <div class="log-body">Arkadaşlarınızın tarayıcıdan bağlanmasını bekleyin. Herkes kendi ülkesini seçtiğinde oyun başlayacaktır.</div>
+            <div class="event-card">
+                <div class="event-meta"><span>Sistem</span><span>Yıl: 2026</span></div>
+                <div class="event-title">🌍 Dünya Sahnesi Açıldı</div>
+                <div class="event-body">Oyun başladı. Tüm küresel aktörler (ABD, Rusya, Çin, AB) yapay zeka kontrolünde hamlelerinizi bekliyor. Toplantı kurabilir, gizli eylemler başlatabilir veya doğrudan yılı ilerleterek dünyayı kaosa sürükleyebilirsiniz.</div>
             </div>
         </div>
     </div>
 
-    <!-- Bağlantı kütüphanesini sayfa iskeleti yüklendikten sonra (en altta) çağırıyoruz -->
-    <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Sunucu bağlantısını başlat
-        const socket = io();
+        let yil = 2026;
         const logPanel = document.getElementById("event-log");
 
-        function ulkeDegistir() {
-            const secilen = document.getElementById("myCountry").value;
-            if(secilen !== "Seçilmedi") {
-                socket.emit('ulkeSec', secilen);
-            }
-        }
+        // Toplantı kurma mekanizması
+        function toplantiYap() {
+            const hedef = document.getElementById("meetingTarget").value;
+            const gundem = document.getElementById("meetingAgenda").value;
 
-        function turAtlaMultiplayer() {
-            const benimUlkem = document.getElementById("myCountry").value;
-            if(benimUlkem === "Seçilmedi") {
-                alert("Lütfen önce yukarıdan kendi ülkenizi seçin!");
+            if(gundem.trim() === "") {
+                alert("Lütfen toplantı için bir gündem maddesi veya teklif yazın!");
                 return;
             }
 
-            const hedef = document.getElementById("targetCountry").value;
-            const eylem = document.getElementById("actionType").value;
-            const emir = document.getElementById("customCommand").value;
-
-            socket.emit('hamleYap', { hedef: hedef, eylem: eylem, emir: emir });
-            document.getElementById("customCommand").value = ""; 
-        }
-
-        socket.on('sistemMesaji', function(msg) {
-            logPanel.innerHTML = `<div class="system-msg">${msg}</div>` + logPanel.innerHTML;
-        });
-
-        socket.on('yeniOlay', function(data) {
-            let hikaye = `<b>${data.yapan}</b> lideri, <b>${data.hedef}</b> bölgesine yönelik <b>${data.eylem}</b> kararı aldı!`;
-            if(data.emir.trim() !== "") {
-                hikaye += `<br><i>Ekstra Diplomatik Talimat: "${data.emir}"</i>`;
+            // Yapay zeka reaksiyon algoritması (Pax Historia Tarzı)
+            let aiCevap = "";
+            if (hedef.includes("Amerika") && gundem.toLowerCase().includes("üs")) {
+                aiCevap = "❌ <b>Washington Yanıtı:</b> Bölgedeki egemenlik hakları gerekçesiyle teklife soğuk bakıldı. Senato ilişkileri gözden geçirmekle tehdit ediyor.";
+            } else if (hedef.includes("Rusya") && (gundem.toLowerCase().includes("ticaret") || gundem.toLowerCase().includes("anlaşma"))) {
+                aiCevap = "🤝 <b>Moskova Yanıtı:</b> Putin teklifi memnuniyetle karşıladı. Enerji ve ticaret hatlarında ortak adımlar atılması kararlaştırıldı.";
+            } else if (hedef.includes("Türk Devletleri")) {
+                aiCevap = "🇦🇿 🇺🇿 <b>Ortak Bildiri:</b> Türk dünyasında askeri ve ekonomik entegrasyonu artıracak tarihi bir mutabakat imzalandı! Sınırlar hafifletiliyor.";
+            } else {
+                aiCevap = `🏛️ <b>${hedef} Diplomatları:</b> "${gundem}" konulu teklifiniz masaya yatırıldı. Şartlı kabul için müzakereler kapalı kapılar ardında devam edecek.`;
             }
 
-            let reaksiyon = "";
-            if(data.eylem === "Milis Güçleri Silahlandırma") {
-                reaksiyon = "<br>⚠️ <b>KRİZ:</b> Bölgedeki yerel hükümet alarma geçti! İç savaş riski tırmanıyor.";
-            } else if(data.eylem === "Askeri Yığınak") {
-                reaksiyon = "<br>🚨 <b>KÜRESEL RAPOR:</b> Rusya ve ABD Doğu Akdeniz/Kafkasya filolarını harekete geçirdi!";
-            }
-
-            const yeniGelisme = `
-                <div class="log-entry" style="border-left: 4px solid #ff9900; padding-left: 10px;">
-                    <div class="log-title">⚡ YENİ HAMLE DEVREYE GİRDİ</div>
-                    <div class="log-body">${hikaye} ${reaksiyon}</div>
+            const kart = `
+                <div class="event-card meeting">
+                    <div class="event-meta"><span>Diplomatik Zirve</span><span>Yıl: ${yil}</span></div>
+                    <div class="event-title">🤝 ${hedef} ile Görüşme Sağlandı</div>
+                    <div class="event-body"><b>Sizin Teklifiniz:</b> "${gundem}"<br><br>${aiCevap}</div>
                 </div>
             `;
-            logPanel.innerHTML = yeniGelisme + logPanel.innerHTML;
-        });
-    </script>
-</body>
-</html>
+            logPanel.innerHTML = kart + logPanel.innerHTML;
+            document.getElementById("meetingAgenda").value = "";
+            logPanel.scrollTop = 0;
+        }
+
+        // 1 Yıl Atlatma ve Küresel Yapay Zeka Hamleleri
+        function yilAtla() {
+            yil++;
+            document.getElementById("current-year").innerText = "YIL: " + yil;
+
+            const bolge = document.getElementById("actionTarget").value;
+            const eylem = document.getElementById("actionType").value;
+
+            // Oyuncunun gizli eyleminin 1 yıl sonraki sonucu
+            let oyuncuSonuc = "";
+            if (eylem.includes("Milis")) {
+                oyuncuSonuc = `🪖 <b>${bolge} Operasyonu:</b> Silahlandırdığınız milis güçleri bölgede kontrolü ele geçirdi. Yerel hükümet düştü, Türkiye'ye bağlı yeni bir yönetim kuruluyor!`;
+            } else if (eylem.includes("Yığınak")) {
