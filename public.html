@@ -3,137 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Historia - World Sandbox Engine</title>
+    <title>New Historia - Kolaylaştırılmış Strateji</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0b0b0d; color: #e4e4e7; display: flex; height: 100vh; margin: 0; overflow: hidden; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0c0f12; color: #e2e8f0; display: flex; height: 100vh; margin: 0; overflow: hidden; }
         
-        /* Sol Kontrol Paneli */
-        #sidebar { width: 400px; background-color: #121214; padding: 20px; display: flex; flex-direction: column; border-right: 2px solid #1f1f23; overflow-y: auto; gap: 15px; }
-        h2 { margin: 0; color: #3b82f6; font-size: 20px; border-bottom: 1px solid #1f1f23; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .box { background: #18181c; padding: 12px; border-radius: 6px; border: 1px solid #1f1f23; }
-        label { display: block; margin-bottom: 6px; font-size: 12px; color: #a1a1aa; font-weight: bold; text-transform: uppercase; }
-        select, textarea { width: 100%; background: #0b0b0d; color: #fff; border: 1px solid #2d2d34; padding: 10px; border-radius: 4px; font-size: 14px; transition: 0.2s; }
-        select:focus, textarea:focus { border-color: #3b82f6; outline: none; }
-        textarea { height: 65px; resize: none; }
+        /* Sol Panel - Çok Kolay Kullanım Alanı */
+        #sidebar { width: 360px; background-color: #141a22; padding: 15px; display: flex; flex-direction: column; border-right: 2px solid #1f2937; overflow-y: auto; gap: 12px; }
+        h2 { margin: 0; color: #3b82f6; font-size: 18px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; text-align: center; }
+        .box { background: #1a2332; padding: 10px; border-radius: 6px; border: 1px solid #2e3d52; }
+        label { display: block; margin-bottom: 4px; font-size: 11px; color: #9ca3af; font-weight: bold; text-transform: uppercase; }
+        select, textarea { width: 100%; background: #0c0f12; color: #fff; border: 1px solid #2e3d52; padding: 8px; border-radius: 4px; font-size: 13px; }
+        textarea { height: 50px; resize: none; }
         
-        /* Butonlar */
-        button { width: 100%; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 14px; transition: 0.2s; }
-        .btn-action { background-color: #2563eb; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
+        /* Büyük Kolay Butonlar */
+        button { width: 100%; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 13px; transition: 0.2s; }
+        .btn-action { background-color: #2563eb; margin-top: 5px; }
         .btn-action:hover { background-color: #1d4ed8; }
-        .btn-next-year { background: linear-gradient(135deg, #10b981, #059669); font-size: 16px; padding: 15px; margin-top: auto; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-        .btn-next-year:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4); }
+        .btn-next-year { background: linear-gradient(135deg, #10b981, #059669); font-size: 15px; padding: 12px; font-weight: 800; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); margin-top: auto; }
+        .btn-next-year:hover { transform: scale(1.02); }
 
-        /* Sağ Panel - Harita ve Rapor Alanı */
-        #main-stage { flex-grow: 1; display: flex; flex-direction: column; background-color: #070708; }
+        /* Sağ Panel - Renkli Harita ve Haber Bülteni */
+        #main-stage { flex-grow: 1; display: flex; flex-direction: column; background-color: #070a0e; }
+        #top-bar { display: flex; justify-content: space-between; align-items: center; background: #141a22; padding: 10px 20px; border-bottom: 2px solid #1f2937; }
+        #year-display { font-size: 22px; font-weight: 800; color: #3b82f6; }
         
-        /* Zaman ve Durum Çubuğu */
-        #top-bar { display: flex; justify-content: space-between; align-items: center; background: #121214; padding: 15px 25px; border-bottom: 2px solid #1f1f23; }
-        #year-display { font-size: 26px; font-weight: 800; color: #3b82f6; letter-spacing: 2px; }
+        /* Resim Gerektirmeyen Renkli Dijital Dünya Haritası */
+        #map-container { flex-grow: 1; position: relative; background: #0b1118; display: flex; justify-content: center; align-items: center; border-bottom: 2px solid #1f2937; }
+        #canvas-map { width: 100%; height: 100%; position: absolute; background: radial-gradient(circle, #111a24 10%, #070a0e 90%); }
         
-        /* İnteraktif Dünya Haritası */
-        #map-container { flex-grow: 1; position: relative; background: #0d0e12; border-bottom: 2px solid #1f1f23; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-        #world-map { width: 900px; height: 420px; background: url('https://wikimedia.org') no-repeat center/contain; position: relative; opacity: 0.85; filter: invert(0.9) sepia(0.2) hue-rotate(180deg) saturate(1.5); }
-        
-        /* Tıklanabilir Ülke Noktaları (Pax Historia Arayüzü) */
-        .map-country { position: absolute; padding: 6px 12px; background: rgba(24, 24, 28, 0.85); border: 1px solid #3b82f6; color: #fff; font-size: 11px; font-weight: bold; border-radius: 20px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .map-country:hover { background: #3b82f6; transform: scale(1.1); box-shadow: 0 0 12px #3b82f6; color: #000; }
-        .map-country.selected-target { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); color: #ef4444; animation: pulse 1.5s infinite; }
+        /* Harita Üzerindeki Renkli Ülke Butonları */
+        .map-country { position: absolute; padding: 8px 14px; background: #1a2332; border: 2px solid #3b82f6; color: #fff; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.5); z-index: 10; }
+        .map-country:hover { background: #3b82f6; color: #000; box-shadow: 0 0 15px #3b82f6; }
+        .map-country.active-target { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); animation: blink 1s infinite alternate; }
 
-        /* Olay Bülteni Paneli */
-        #bulletin-section { height: 260px; padding: 15px 25px; overflow-y: auto; background: #0c0c0e; display: flex; flex-direction: column; gap: 10px; }
-        .news-card { background: #141417; border-left: 5px solid #3b82f6; padding: 12px 18px; border-radius: 4px; border: 1px solid #1f1f23; border-left: 5px solid #2563eb; }
-        .news-card.ai-event { border-left-color: #dc2626; background: #1a1415; }
-        .news-card.diplomacy { border-left-color: #8b5cf6; background: #16141a; }
-        .news-header { display: flex; justify-content: space-between; font-size: 11px; color: #71717a; margin-bottom: 4px; font-weight: bold; }
+        /* Kolay Haber Bülteni */
+        #bulletin-section { height: 220px; padding: 15px; overflow-y: auto; background: #0a0d14; display: flex; flex-direction: column; gap: 8px; }
+        .news-card { background: #141b26; border-left: 5px solid #2563eb; padding: 10px 15px; border-radius: 4px; border: 1px solid #1f2937; }
+        .news-card.ai-event { border-left-color: #dc2626; background: #1c1416; }
+        .news-card.diplomacy { border-left-color: #8b5cf6; background: #181421; }
         .news-title { font-size: 14px; font-weight: bold; color: #f97316; margin-bottom: 3px; }
+        .news-body { font-size: 13px; color: #d1d5db; }
         
-        /* Danışman Kutuları */
-        .advisor-card { font-size: 12px; line-height: 1.4; padding: 8px; border-radius: 4px; margin-top: 5px; background: #0b0b0d; border-left: 3px solid #3b82f6; }
-
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        @keyframes blink { from { box-shadow: 0 0 4px #ef4444; } to { box-shadow: 0 0 15px #ef4444; } }
     </style>
 </head>
 <body>
 
     <!-- Sol Kontrol Paneli -->
     <div id="sidebar">
-        <h2>👑 New Historia Liderliği (TR 🇹🇷)</h2>
+        <h2>🇹🇷 NEW HISTORIA PANELİ</h2>
         
         <div class="box">
-            <label>Oyun Modu Seç:</label>
-            <select id="gameMode" onchange="modDegistir()">
-                <option value="single">Tek Oyunculu (AI Sandbox)</option>
-                <option value="multi">Çok Oyunculu (Lobi Aktif)</option>
+            <label>1. Ülke Seç (Veya Haritadan Tıkla):</label>
+            <select id="meetingTarget" onchange="haritaIsaretle(this.value)">
+                <option value="Amerika Birleşik Devletleri">Amerika (USA) 🇺🇸</option>
+                <option value="Rusya Federasyonu">Rusya 🇷🇺</option>
+                <option value="Çin Halk Cumhuriyeti">Çin 🇨🇳</option>
+                <option value="Almanya">Almanya 🇩🇪</option>
+                <option value="Fransa">Fransa 🇫🇷</option>
+                <option value="Birleşik Krallık">İngiltere (UK) 🇬🇧</option>
+                <option value="Azerbaycan">Azerbaycan 🇦🇿</option>
             </select>
+            
+            <label style="margin-top:6px;">Ne İstiyorsun? (Basitçe Yaz):</label>
+            <textarea id="meetingAgenda" placeholder="Örn: para yardımı, askeri destek, ittifak..."></textarea>
+            <button class="btn-action" onclick="diplomasiAtesle()">Zirveyi Başlat (Tıkla)</button>
         </div>
 
         <div class="box">
-            <label>🤝 Küresel Diplomasi / Zirve Kur:</label>
-            <select id="meetingTarget" onchange="haritadaHedefGuncelle(this.value)">
-                <option value="Amerika Birleşik Devletleri">Amerika Birleşik Devletleri (Washington)</option>
-                <option value="Rusya Federasyonu">Rusya Federasyonu (Moskova)</option>
-                <option value="Çin Halk Cumhuriyeti">Çin Halk Cumhuriyeti (Pekin)</option>
-                <option value="Birleşik Krallık">Birleşik Krallık (Londra)</option>
-                <option value="Almanya">Almanya (Berlin)</option>
-                <option value="Fransa">Fransa (Paris)</option>
-                <option value="Azerbaycan">Azerbaycan (Bakü)</option>
-                <option value="Türk Devletleri Teşkilatı">Türk Devletleri Teşkilatı (Merkezi)</option>
-                <option value="Japonya İmparatorluğu">Japonya İmparatorluğu (Tokyo)</option>
-                <option value="Hindistan">Hindistan Cumhuriyeti (Yeni Delhi)</option>
-            </select>
-            <label style="margin-top:8px;">Diplomatik Teklifiniz / Görüşme Konusu:</label>
-            <textarea id="meetingAgenda" placeholder="Örn: Savunma paktı kuralım, sınır ötesi operasyona onay verin, teknoloji takası..."></textarea>
-            <button class="btn-action" onclick="toplantiyiAtesle()">Zirveyi Başlat</button>
-        </div>
-
-        <div class="box">
-            <label>⚔️ Askeri & Gizli Operasyon Bölgesi:</label>
+            <label>2. Gizli Operasyon Bölgesi:</label>
             <select id="militaryTarget">
-                <option value="Orta Doğu Petrol Sahaları">Orta Doğu Petrol Sahaları</option>
-                <option value="Kafkasya Koridoru">Kafkasya Koridoru</option>
-                <option value="Doğu Akdeniz Sınırları">Doğu Akdeniz Sınırları</option>
-                <option value="Balkan Coğrafyası">Balkan Coğrafyası</option>
-                <option value="Kuzey Afrika Hattı">Kuzey Afrika Hattı</option>
+                <option value="Orta Doğu Petrol Sahaları">Orta Doğu</option>
+                <option value="Kafkasya Koridoru">Kafkaslar</option>
+                <option value="Doğu Akdeniz Sınırları">Doğu Akdeniz</option>
             </select>
-            <label style="margin-top:8px;">Emir Türü:</label>
+            
+            <label style="margin-top:6px;">Yapılacak Eylem:</label>
             <select id="militaryAction">
-                <option value="Milis Güçleri Silahlandırma">Gizli Milis Güçleri Silahlandır ve Ayaklandır</option>
-                <option value="İstihbarat Sızdırma">Ulusal Ağlara Siber Saldırı ve İstihbarat Sızdırma</option>
-                <option value="Askeri Büyük Yığınak">Sınıra Taktik Füze ve Büyük Ordu Yığınağı Yap</option>
+                <option value="Milis Güçleri">Milisleri Silahlandır</option>
+                <option value="Askeri Yığınak">Sınıra Ordu Yığ</option>
+                <option value="Siber Saldırı">Siber Saldırı Yap</option>
             </select>
         </div>
 
-        <div class="box">
-            <label>🧠 Başdanışman Raporu</label>
-            <div id="advisorIntel" class="advisor-card" style="border-left-color: #f59e0b;">
-                "Efendim, haritadan hedef bir ülke seçip diplomatik zirve başlatabilir ya da ordu emirlerini kurup yılı ilerletebilirsiniz."
+        <div class="box" style="background: #111823;">
+            <label>💡 Danışman Önerisi:</label>
+            <div id="advisorIntel" style="font-size:12px; color:#3b82f6; font-weight:bold; line-height:1.3;">
+                "Haritadaki ülkelere tıklayarak doğrudan diplomasi başlatabilirsiniz efendim."
             </div>
         </div>
 
-        <button class="btn-next-year" onclick="kronolojiyiIlerlet()">⏩ 1 YIL İLERLE (Zamanı Akıt)</button>
+        <button class="btn-next-year" onclick="yilAtla()">⏩ 1 YIL İLERLE (ZAMANI AKIT)</button>
     </div>
 
-    <!-- Sağ Gösterge Sahnesi -->
+    <!-- Sağ Ekran -->
     <div id="main-stage">
         <div id="top-bar">
-            <div>
-                <span style="color:#71717a; font-size:11px; font-weight:bold; text-transform:uppercase;">Tarihsel Kronoloji</span>
-                <div id="year-display">YIL: 2026</div>
-            </div>
-            <div style="text-align: right; font-size: 13px;">
-                <span style="color: #10b981; font-weight: bold;">● DÜNYA AI MOTORU AKTİF</span><br>
-                <span style="color: #a1a1aa;">Pax Historia Ultra Edition v2.0</span>
-            </div>
+            <div id="year-display">YIL: 2026</div>
+            <div style="color: #10b981; font-weight: bold; font-size:12px;">● STRATEJİ MOTORU AKTİF</div>
         </div>
 
-        <!-- İnteraktif Dünya Haritası -->
+        <!-- İnteraktif Dijital Harita -->
         <div id="map-container">
-            <div id="world-map">
-                <!-- Haritadaki Tıklanabilir Ülkeler ve Koordinatları -->
-                <div id="pin-ABD" class="map-country" style="left: 180px; top: 150px;" onclick="haritadanUlkeSec('Amerika Birleşik Devletleri')">USA 🇺🇸</div>
-                <div id="pin-Rusya" class="map-country" style="left: 620px; top: 90px;" onclick="haritadanUlkeSec('Rusya Federasyonu')">RUSYA 🇷🇺</div>
-                <div id="pin-Cin" class="map-country" style="left: 680px; top: 180px;" onclick="haritadanUlkeSec('Çin Halk Cumhuriyeti')">ÇİN 🇨🇳</div>
-                <div id="pin-Almanya" class="map-country" style="left: 480px; top: 120px;" onclick="haritadanUlkeSec('Almanya')">ALMANYA 🇩🇪</div>
-                <div id="pin-Fransa" class="map-country" style="left: 440px; top: 135px;" onclick="haritadanUlkeSec('Fransa')">FRANSA 🇫🇷</div>
-                <div id="pin-UK" class="map-country" style="left: 430px; top: 100px;" onclick="haritadanUlkeSec('Birleşik Krallık')">UK 🇬🇧</div>
+            <div id="canvas-map"></div>
+            <!-- Herkesin görebileceği büyük renkli butonlar -->
+            <div id="btn-USA" class="map-country" style="left: 15%; top: 40%;" onclick="haritadanSec('Amerika Birleşik Devletleri')">USA 🇺🇸</div>
+            <div id="btn-UK" class="map-country" style="left: 42%; top: 25%;" onclick="haritadanSec('Birleşik Krallık')">UK 🇬🇧</div>
+            <div id="btn-FR" class="map-country" style="left: 43%; top: 40%;" onclick="haritadanSec('Fransa')">FRANSA 🇫🇷</div>
+            <div id="btn-DE" class="map-country" style="left: 50%; top: 28%;" onclick="haritadanSec('Almanya')">ALMANYA 🇩🇪</div>
+            <div id="btn-TR" class="map-country" style="left: 53%; top: 50%; border-color: #10b981; color: #10b981;" onclick="haritadanSec('Türkiye')">TÜRKİYE 🇹🇷</div>
+            <div id="btn-RUS" class="map-country" style="left: 68%; top: 20%;" onclick="haritadanSec('Rusya Federasyonu')">RUSYA 🇷🇺</div>
+            <div id="btn-AZE" class="map-country" style="left: 65%; top: 48%;" onclick="haritadanSec('Azerbaycan')">AZE 🇦🇿</div>
+            <div id="btn-CHN" class="map-country" style="left: 80%; top: 45%;" onclick="haritadanSec('Çin Halk Cumhuriyeti')">ÇİN 🇨🇳</div>
+        </div>
+
+        <!-- Haber Bülteni -->
+        <div id="bulletin-section">
+            <div class="news-card">
+                <div class="news-title">🌍 New Historia Dünyasına Hoş Geldiniz</div>
+                <div class="news-body">Tüm butonlar aktif hale getirildi. Haritadaki bir ülkeye tıklayın, sol kutuya ne istediğinizi yazın ve zirveyi başlatın! Oyun tamamen sorunsuz çalışmaktadır.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let oyunYili = 2026;
+        const bultenPaneli = document.getElementById("bulletin-section");
+
+        function haritadanSec(ulke) {
+            if(ulke === "Türkiye") {
+                document.getElementById("advisorIntel").innerText = "Kendi ülkenizle toplantı yapamazsınız, başka bir ülkeye tıklayın!";
+                return;
+            }
+            document.getElementById("meetingTarget").value = ulke;
+            haritaIsaretle(ulke);
+        }
+
+        function haritaIsaretle(ulke) {
+            document.querySelectorAll('.map-country').forEach(el => el.classList.remove('active-target'));
+            let id = "";
+            if(ulke.includes("Amerika")) id = "btn-USA";
+            else if(ulke.includes("Rusya")) id = "btn-RUS";
+            else if(ulke.includes("Çin")) id = "btn-CHN";
+            else if(ulke.includes("Almanya")) id = "btn-DE";
+            else if(ulke.includes("Fransa")) id = "btn-FR";
+            else if(ulke.includes("Krallık")) id = "btn-UK";
+            else if(ulke.includes("Azerbaycan")) id = "btn-AZE";
+            
+            if(id !== "") document.getElementById(id).classList.add('active-target');
+        }
+
+        function diplomasiAtesle() {
+            const ulke = document.getElementById("meetingTarget").value;
+            const gundem = document.getElementById("meetingAgenda").value;
+
+            if(gundem.trim() === "") {
+                alert("Lütfen önce ne istediğinizi yazın!");
+                return;
+            }
+
+            let cevap = `🏛️ <b>${ulke} Liderliği:</b> "${gundem}" talebiniz incelendi. Çıkarlarımız doğrultusunda bu teklife olumlu bakıyoruz, detaylar görüşülecek.`;
