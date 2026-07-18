@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pax Historia 3 Kişilik Simülatör</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #121212; color: #e0e0e0; display: flex; height: 100vh; margin: 0; }
+        #left-panel { width: 350px; background-color: #1e1e1e; padding: 15px; display: flex; flex-direction: column; border-right: 2px solid #2d2d2d; }
+        h3 { margin-top: 0; color: #007acc; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .selector-box { margin-bottom: 15px; }
+        select, textarea { width: 100%; background: #252526; color: #fff; border: 1px solid #3c3c3c; padding: 8px; border-radius: 4px; }
+        textarea { height: 80px; resize: none; margin-top: 5px; }
+        button { width: 100%; background-color: #0e639c; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 8px; }
+        button:hover { background-color: #1177bb; }
+        #center-panel { flex-grow: 1; padding: 20px; display: flex; flex-direction: column; background-color: #141414; }
+        #event-log { flex-grow: 1; overflow-y: auto; background: #1a1a1a; border: 1px solid #2d2d2d; padding: 15px; border-radius: 6px; }
+        .log-entry { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #252526; line-height: 1.4; }
+        .log-title { font-weight: bold; color: #ff9900; }
+        .system-msg { color: #00cc66; font-style: italic; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- Sol Panel: Ülke Seçimi ve Eylemler -->
+    <div id="left-panel">
+        <h3>1. Ülkeni Seç</h3>
+        <div class="selector-box">
+            <select id="myCountry" onchange="ulkeDegistir()">
+                <option value="Seçilmedi">--- Ülke Seçiniz ---</option>
+                <option value="Türkiye">Türkiye 🇹🇷</option>
+                <option value="Azerbaycan">Azerbaycan 🇦🇿</option>
+                <option value="Galiçya / Rusya">Rusya 🇷🇺</option>
+            </select>
+        </div>
+
+        <h3>2. Eylem Yap</h3>
+        <div class="selector-box">
+            <label>Hedef Bölge:</label>
+            <select id="targetCountry">
+                <option value="İran (Güney Azerbaycan)">İran (Güney Azerbaycan)</option>
+                <option value="Suriye (Kuzey Türkmenleri)">Suriye (Kuzey Türkmenleri)</option>
+                <option value="Ermenistan Sınırı">Ermenistan Sınırı</option>
+                <option value="Kıbrıs Rum Kesimi">Kıbrıs Rum Kesimi</option>
+            </select>
+        </div>
+
+        <div class="selector-box">
+            <label>Eylem Türü:</label>
+            <select id="actionType">
+                <option value="Gizli Propaganda">Gizli Propaganda Başlat</option>
+                <option value="Milis Güçleri Silahlandırma">Milisleri Silahlandır</option>
+                <option value="Askeri Yığınak">Sınıra Askeri Yığınak Yap</option>
+                <option value="Diplomatik Blöf">Diplomatik Baskı Kur</option>
+            </select>
+        </div>
+
+        <label>Özel Emir / Chat Mesajı:</label>
+        <textarea id="customCommand" placeholder="Örn: Trump ile gizli anlaşma yap..."></textarea>
+        
+        <button onclick="turAtlaMultiplayer()">HAMLEYİ ODADAKİLERE GÖNDER</button>
+    </div>
+
+    <!-- Orta Panel: Ortak Ekran -->
+    <div id="center-panel">
+        <h3>Küresel Ortak Rapor Ekranı (Multiplayer)</h3>
+        <div id="event-log">
+            <div class="log-entry">
+                <div class="log-title">🌍 Lobide Bağlantı Bekleniyor</div>
+                <div class="log-body">Arkadaşlarınızın tarayıcıdan bağlanmasını bekleyin. Herkes kendi ülkesini seçtiğinde oyun başlayacaktır.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bağlantı kütüphanesini sayfa iskeleti yüklendikten sonra (en altta) çağırıyoruz -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Sunucu bağlantısını başlat
+        const socket = io();
+        const logPanel = document.getElementById("event-log");
+
+        function ulkeDegistir() {
+            const secilen = document.getElementById("myCountry").value;
+            if(secilen !== "Seçilmedi") {
+                socket.emit('ulkeSec', secilen);
+            }
+        }
+
+        function turAtlaMultiplayer() {
+            const benimUlkem = document.getElementById("myCountry").value;
+            if(benimUlkem === "Seçilmedi") {
+                alert("Lütfen önce yukarıdan kendi ülkenizi seçin!");
+                return;
+            }
+
+            const hedef = document.getElementById("targetCountry").value;
+            const eylem = document.getElementById("actionType").value;
+            const emir = document.getElementById("customCommand").value;
+
+            socket.emit('hamleYap', { hedef: hedef, eylem: eylem, emir: emir });
+            document.getElementById("customCommand").value = ""; 
+        }
+
+        socket.on('sistemMesaji', function(msg) {
+            logPanel.innerHTML = `<div class="system-msg">${msg}</div>` + logPanel.innerHTML;
+        });
+
+        socket.on('yeniOlay', function(data) {
+            let hikaye = `<b>${data.yapan}</b> lideri, <b>${data.hedef}</b> bölgesine yönelik <b>${data.eylem}</b> kararı aldı!`;
+            if(data.emir.trim() !== "") {
+                hikaye += `<br><i>Ekstra Diplomatik Talimat: "${data.emir}"</i>`;
+            }
+
+            let reaksiyon = "";
+            if(data.eylem === "Milis Güçleri Silahlandırma") {
+                reaksiyon = "<br>⚠️ <b>KRİZ:</b> Bölgedeki yerel hükümet alarma geçti! İç savaş riski tırmanıyor.";
+            } else if(data.eylem === "Askeri Yığınak") {
+                reaksiyon = "<br>🚨 <b>KÜRESEL RAPOR:</b> Rusya ve ABD Doğu Akdeniz/Kafkasya filolarını harekete geçirdi!";
+            }
+
+            const yeniGelisme = `
+                <div class="log-entry" style="border-left: 4px solid #ff9900; padding-left: 10px;">
+                    <div class="log-title">⚡ YENİ HAMLE DEVREYE GİRDİ</div>
+                    <div class="log-body">${hikaye} ${reaksiyon}</div>
+                </div>
+            `;
+            logPanel.innerHTML = yeniGelisme + logPanel.innerHTML;
+        });
+    </script>
+</body>
+</html>
